@@ -1,7 +1,8 @@
 import React from 'react';
+import Gallery from './gallery/Gallery';
 
 function App() {
-	return <div className="App"></div>;
+	return <Gallery />;
 }
 
 export default App;
