@@ -1,4 +1,4 @@
-export interface photoType
+export type PhotoType =
 {
     id: number;
     width: number;
@@ -23,7 +23,7 @@ export interface photoType
 
 export type APIResponse =
 {
-    photos: photoType[];
+    photos: PhotoType[];
     page: number;
     per_page: number;
     total_results: number;
