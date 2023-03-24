@@ -1,42 +1,49 @@
 import { useEffect, useState } from 'react';
 import Button from '../../common/components/Button';
-import { photoType } from '../../common/types';
+import { PhotoType } from '../../common/types';
 
-export default function Photo({ photo }: { photo: photoType }) {
-	//document.documentElement.style.setProperty('--loading-color', photo.avg_color);
-
-	const [favourite, setFavourite] = useState(false);
-	const [favouritedPhotos, setFavouritedPhotos] = useState([] as photoType[]);
+export default function Photo({ photo }: { photo: PhotoType }) {
+	const [favourite, setFavourite] = useState<boolean>(false);
+	const [photos, setPhotos] = useState<PhotoType[]>([]);
 
 	useEffect(() => {
-		saveFavourite();
-		const favourited = JSON.parse(localStorage.getItem('favouritedPhotos') || '');
-		setFavouritedPhotos(favourited);
-		console.log(favourite + ' ' + favouritedPhotos);
-	}, []);
+		document.documentElement.style.setProperty('--loading-color', photo.avg_color);
+	}, [photo.avg_color]);
+
+	useEffect(() => {
+		const favouritedPhoto = JSON.parse(localStorage.getItem('photos') || '');
+		if (favouritedPhoto.length > 0) {
+			setPhotos(favouritedPhoto);
+			const currentPhoto = favouritedPhoto.find((item: PhotoType) => item.id === photo.id);
+			if (currentPhoto) {
+				setFavourite(currentPhoto.liked);
+			}
+		}
+	}, [photo.id]);
 
 	const handleFavourite = () => {
-		setFavourite(!favourite);
+		const newFavourited = photos.map((item) => {
+			if (item.id === photo.id) {
+				const newLiked = !item.liked;
+				setFavourite(newLiked);
+				return { ...item, liked: newLiked };
+			}
+			return item;
+		});
+		setPhotos(newFavourited);
+		localStorage.setItem('photos', JSON.stringify(newFavourited));
 	};
-	const saveFavourite = () => {
-		if (favourite) addFavourite();
-		else removeFavourite();
-		localStorage.setItem('favouritedPhotos', JSON.stringify(favouritedPhotos));
-	};
-	const addFavourite = () => {
-		setFavouritedPhotos([photo]);
-	};
-	const removeFavourite = () => {
-		if (photo.id !== null) setFavouritedPhotos(favouritedPhotos.filter((item: photoType) => item.id !== photo.id));
-	};
+
 	return (
 		<div className="photo-container">
-			<img className="photo skeleton" src={photo.src.landscape} alt={photo.alt} loading="lazy" />
-			<div className="overlay">
-				<div className="photo-title">{photo.alt}</div>
-				<hr className="custom-line" />
-				<div className="photo-author">{photo.photographer}</div>
-				<Button favourite={favourite} onClick={() => handleFavourite()} />
+			<img className="photo skeleton photo-size" src={photo.src.landscape} alt={photo.alt} loading="lazy" />
+			<div className="overlay photo-size">
+				<div className="photo-info-container photo-text">
+					<div className="photo-title">{photo.alt}</div>
+					<hr className="custom-line" />
+					<div className="photo-author">{photo.photographer}</div>
+					<Button favourite={favourite} onClick={() => handleFavourite()} />
+				</div>
 			</div>
 		</div>
 	);

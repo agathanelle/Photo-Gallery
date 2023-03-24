@@ -1,58 +1,62 @@
 import { useEffect, useState } from 'react';
 import { PhotoType } from '../common/types';
-import { PexelsAPIKey, PexelsAPIUrl } from '../common/requests';
+import { perPageValue, PexelsAPIKey, PexelsAPIUrl, queryValue } from '../common/consts';
 import Photo from './components/Photo';
+import Error from '../common/components/Error';
 
 export default function Gallery() {
 	const [photos, setPhotos] = useState<PhotoType[]>([]);
 	const [page, setPage] = useState<number>(1);
-	const [loading, setLoading] = useState<boolean>(false);
-	//if (!localStorage['favouritedPhotos']) localStorage.setItem('favouritedPhotos', '');
+	const [isLoading, setLoading] = useState<boolean>(false);
+	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
-		fetchPhotos('nature', 15, page);
+		fetchPhotos(queryValue, perPageValue, page);
 	}, [page]);
 
-	async function fetchPhotos(query: string, per_page: number, page?: number) {
+	async function fetchPhotos(query: string, per_page: number, page: number) {
 		setLoading(true);
-		fetch(`${PexelsAPIUrl}/v1/search?per_page=${per_page}&query=${query}&page=${page}`, {
-			headers: {
-				Authorization: PexelsAPIKey
-			}
-		})
-			.then((response) => response.json())
-			.then((data) => {
-				setPhotos((prevPhotos) => [...prevPhotos, ...(data.photos as PhotoType[])]);
-			})
-			.catch((error) => {
-				console.log(error);
-				setLoading(false);
+		try {
+			const response = await fetch(`${PexelsAPIUrl}/v1/search?per_page=${per_page}&query=${query}&page=${page}`, {
+				headers: {
+					Authorization: PexelsAPIKey
+				}
 			});
+			if (response.ok) {
+				const data = await response.json();
+				setPhotos((prevPhotos) => [...prevPhotos, ...(data.photos as PhotoType[])]);
+				const allPhotos: PhotoType[] = JSON.parse(localStorage.getItem('photos') || '[]');
+				allPhotos.push(...data.photos);
+				localStorage.setItem('photos', JSON.stringify(allPhotos));
+				setError(null);
+			} else {
+				console.log('Failed to fetch photos');
+				setError('Failed to fetch photos');
+			}
+		} catch (error) {
+			setError('Failed to fetch photos. Detailed error: ' + error);
+			console.log(error);
+		} finally {
+			setLoading(false);
+		}
 	}
 
-	const handleScroll = () => {
-		if (Math.round(window.scrollY + window.innerHeight) >= document.documentElement.scrollHeight && !loading) {
-			setPage((prevPage) => prevPage + 1);
-		}
-	};
-
 	useEffect(() => {
+		const handleScroll = () => {
+			if (Math.round(window.scrollY + window.innerHeight) >= document.documentElement.scrollHeight && !isLoading) {
+				setPage((prevPage) => prevPage + 1);
+			}
+		};
 		window.addEventListener('scroll', handleScroll);
 		return () => window.removeEventListener('scroll', handleScroll);
-	}, []);
+	}, [isLoading]);
 
-	//unique data
 	return (
-		<>
-			{photos ? (
-				<div className="container">
-					{photos.map((photo) => (
-						<Photo key={photo.id} photo={photo}></Photo>
-					))}
-				</div>
-			) : (
-				<div></div>
-			)}
-		</>
+		<div className="container">
+			{photos.map((photo) => (
+				<Photo key={photo.id} photo={photo}></Photo>
+			))}
+			{error && <Error text={error} />}
+		</div>
 	);
 }
