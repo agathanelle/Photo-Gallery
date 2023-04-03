@@ -9,7 +9,13 @@ const typeButtonText = {
 };
 
 // eslint-disable-next-line import/no-unused-modules
-export default function Button({ favourite, onClick }: { favourite: boolean; onClick: any }) {
+export default function Button({
+  favourite,
+  onClick,
+}: {
+  favourite: boolean;
+  onClick: React.MouseEventHandler<HTMLButtonElement>;
+}) {
   if (favourite) {
     return (
       <button className={typeClassMap.clicked} onClick={onClick}>
