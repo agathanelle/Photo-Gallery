@@ -4,7 +4,6 @@ import { PhotoType } from '../common/types';
 import { perPageValue, PexelsAPIKey, PexelsAPIUrl, queryValue } from '../common/consts';
 import Photo from './components/Photo';
 import Error from '../common/components/Error';
-import LoadingPhotos from './components/loading/LoadingPhotos';
 
 export default function Gallery() {
   const [photos, setPhotos] = useState<PhotoType[]>([]);
@@ -54,7 +53,7 @@ export default function Gallery() {
   return (
     <div>
       {isLoading ? (
-        <LoadingPhotos photoCount={15} />
+        <></>
       ) : (
         <div className="container">
           {photos.map((photo) => (
