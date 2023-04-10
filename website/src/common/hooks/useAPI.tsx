@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { useState } from 'react';
 import { PhotoType } from '../types';
+import { FetchPhotos } from '../requests';
 
 /* eslint-disable import/no-unused-modules */
 
@@ -13,7 +14,7 @@ type ReturnedData = {
 function useAPI() {
     const [state, setState] = useState<ReturnedData>();
 
-    async function call(request: any) {
+    async function call(request: FetchPhotos) {
         setState({ data: null, error: null, loading: false });
 
         try {
